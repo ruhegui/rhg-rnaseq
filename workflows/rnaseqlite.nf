@@ -43,7 +43,7 @@ workflow RNASEQLITE {
     FASTP (
         ch_samplesheet,
         params.adapter_fasta ?: [],
-        true, false, false
+        false, false, false
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
