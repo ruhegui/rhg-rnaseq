@@ -3,7 +3,7 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
+include { CONCAT                 } from '../modules/local/concat.nf'
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
@@ -29,24 +29,39 @@ workflow RNASEQLITE {
     ch_multiqc_files = Channel.empty()
 
     //
-    // MODULE: Run FastQC
+    // MODULE: Run CONCAT
     //
-    FASTQC (
-        ch_samplesheet
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
-    ch_samplesheet.view()
+    ch_samplesheet.map{
+        meta, reads ->
+        def R1 = reads.findAll { reads.indexOf(it) % 2 == 0 }
+        def R2 = reads.findAll { reads.indexOf(it) % 2 != 0 }
+        [meta, R1, R2]
+    }
+    | CONCAT
+    CONCAT.out.files.map {meta, read1, read2 -> [meta, [read1, read2]]}
+    | set {concat_files}
+    ch_versions = ch_versions.mix(CONCAT.out.versions.first())
     //
     // MODULE: Run FASTP
+    //
     FASTP (
-        ch_samplesheet,
+        concat_files,
         params.adapter_fasta ?: [],
         false, false, false
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
+
+     //
+    // MODULE: Run FastQC
+    //
+    FASTQC (
+        FASTP.out.reads
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
+    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
 
     //
     // Collate and save software versions
