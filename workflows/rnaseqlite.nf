@@ -5,6 +5,7 @@
 */
 
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
+include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -35,6 +36,17 @@ workflow RNASEQLITE {
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
+    ch_samplesheet.view()
+    //
+    // MODULE: Run FASTP
+    FASTP (
+        ch_samplesheet,
+        params.adapter_fasta ?: [],
+        true, false, false
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
+    ch_versions = ch_versions.mix(FASTP.out.versions.first())
 
     //
     // Collate and save software versions
