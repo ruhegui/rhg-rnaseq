@@ -1,0 +1,26 @@
+Changes in module 'nf-core/salmon/quant'
+--- modules/nf-core/salmon/quant/main.nf
++++ modules/nf-core/salmon/quant/main.nf
+@@ -10,7 +10,6 @@
+     input:
+     tuple val(meta), path(reads)
+     path  index
+-    path  gtf
+     path  transcript_fasta
+     val   alignment_mode
+     val   lib_type
+@@ -60,7 +59,7 @@
+     }
+     """
+     salmon quant \\
+-        --geneMap $gtf \\
++        --seqBias --gcBias \\
+         --threads $task.cpus \\
+         --libType=$strandedness \\
+         $reference \\
+@@ -94,3 +93,4 @@
+     END_VERSIONS
+     """
+ }
++    
+************************************************************

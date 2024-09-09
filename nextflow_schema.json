@@ -5,25 +5,12 @@
     "description": "light suite of rnaseq tools",
     "type": "object",
     "definitions": {
-        "fastp_options": {
-            "title": "FASTP options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "fa_icon": "far fa-file",
-            "properties": {
-                "adapter_fasta": {
-                    "type": "string",
-                    "description": "FASTA file with adapters"
-                }
-            }
-        },
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["input", "outdir", "workdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -53,6 +40,11 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                },
+                "workdir": {
+                    "type": "string",
+                    "description": "Path to work directory",
+                    "fa_icon": "fas fa-folder-plus"
                 }
             }
         },
@@ -256,12 +248,38 @@
                     "hidden": true
                 }
             }
+        },
+        "fastp_options": {
+            "title": "FASTP options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-cut",
+            "properties": {
+                "adapter_fasta": {
+                    "type": "string",
+                    "description": "FASTA file with adapters",
+                    "fa_icon": "fas fa-font"
+                }
+            }
+        },
+        "salmon_options": {
+            "title": "Salmon options",
+            "type": "object",
+            "description": "Options for the salmon/quant tool",
+            "default": "",
+            "properties": {
+                "index": {
+                    "type": "string",
+                    "fa_icon": "fas fa-folder-open",
+                    "description": "Path to the index"
+                }
+            },
+            "required": ["index"],
+            "fa_icon": "fas fa-align-justify"
         }
     },
     "allOf": [
-        {
-            "$ref": "#/definitions/fastp_options"
-        },
         {
             "$ref": "#/definitions/input_output_options"
         },
@@ -273,6 +291,12 @@
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/fastp_options"
+        },
+        {
+            "$ref": "#/definitions/salmon_options"
         }
     ]
 }

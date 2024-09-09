@@ -1,6 +1,6 @@
 process CONCAT{
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     input:
     tuple val(meta), path(R1), path(R2)
@@ -16,7 +16,7 @@ process CONCAT{
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        concat: \$(cat --version |& sed '1!d ; s/cat //')
+        cat: \$(cat --version |& sed '1!d ; s/cat //')
     END_VERSIONS
     """
 }

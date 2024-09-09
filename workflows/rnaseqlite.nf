@@ -4,6 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { CONCAT                 } from '../modules/local/concat.nf'
+include { SALMON_QUANT           } from '../modules/nf-core/salmon/quant/main'
 include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 include { FASTP                  } from '../modules/nf-core/fastp/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
@@ -28,10 +29,11 @@ workflow RNASEQLITE {
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
 
+
+
     //
     // MODULE: Run CONCAT
     //
-
     ch_samplesheet.map{
         meta, reads ->
         def R1 = reads.findAll { reads.indexOf(it) % 2 == 0 }
@@ -42,6 +44,7 @@ workflow RNASEQLITE {
     CONCAT.out.files.map {meta, read1, read2 -> [meta, [read1, read2]]}
     | set {concat_files}
     ch_versions = ch_versions.mix(CONCAT.out.versions.first())
+
     //
     // MODULE: Run FASTP
     //
@@ -53,7 +56,7 @@ workflow RNASEQLITE {
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]})
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
 
-     //
+    //
     // MODULE: Run FastQC
     //
     FASTQC (
@@ -62,6 +65,16 @@ workflow RNASEQLITE {
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
+    //
+    // MODULE: Run SALMON_QUANT
+    //
+    SALMON_QUANT(
+        FASTP.out.reads,
+        params.index,
+        [], false, "A"
+    )
+    ch_multiqc_files = ch_multiqc_files.mix(SALMON_QUANT.out.results.collect{it[1]})
+    ch_versions = ch_versions.mix(SALMON_QUANT.out.versions.first())
 
     //
     // Collate and save software versions
