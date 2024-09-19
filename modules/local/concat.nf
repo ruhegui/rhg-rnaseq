@@ -1,6 +1,6 @@
 process CONCAT{
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_low'
 
     input:
     tuple val(meta), path(R1), path(R2)
